@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Sidebar Favorites",
+  "version": "0.1.0",
+  "description": "Browse and manage bookmark bar folders from a cleaner side panel view.",
+  "action": {
+    "default_title": "Sidebar Favorites"
+  },
+  "permissions": ["bookmarks", "storage", "tabs", "sidePanel"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}

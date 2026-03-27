@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sidebar Favorites</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="icon-expand_more" viewBox="0 0 24 24">
+        <path d="M7 10l5 5 5-5z"></path>
+      </symbol>
+      <symbol id="icon-chevron_right" viewBox="0 0 24 24">
+        <path d="M10 6l6 6-6 6z"></path>
+      </symbol>
+      <symbol id="icon-edit" viewBox="0 0 24 24">
+        <path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zm14.71-9.04a1.003 1.003 0 000-1.42l-2.5-2.5a1.003 1.003 0 00-1.42 0l-1.96 1.96 3.75 3.75 2.13-2.09z"></path>
+      </symbol>
+      <symbol id="icon-create_new_folder" viewBox="0 0 24 24">
+        <path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"></path>
+      </symbol>
+      <symbol id="icon-delete_outline" viewBox="0 0 24 24">
+        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"></path>
+      </symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24">
+        <path d="M18.3 5.71L12 12l6.3 6.29-1.41 1.41L10.59 13.41 4.29 19.7 2.88 18.29 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.29-6.29z"></path>
+      </symbol>
+      <symbol id="icon-bookmark" viewBox="0 0 24 24">
+        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"></path>
+      </symbol>
+      <symbol id="icon-bookmark_add" viewBox="0 0 24 24">
+        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm-1 9h-3v3h-2v-3H8v-2h3V7h2v3h3v2z"></path>
+      </symbol>
+    </svg>
+
+    <div class="app-shell">
+      <header class="panel-header">
+        <div class="brand-block">
+          <p class="eyebrow">Sidebar Favorites</p>
+          <h1>Sidebar Favorites</h1>
+          <p class="header-copy">A cleaner bookmark-bar view for the Chrome side panel.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="root-picker">
+            <button id="rootTrigger" class="root-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="root-trigger__label">Choose folder</span>
+              <span class="root-trigger__title" id="rootTriggerTitle">No folder selected</span>
+              <svg class="icon"><use href="#icon-expand_more"></use></svg>
+            </button>
+            <div id="rootMenu" class="root-menu" hidden>
+              <div class="root-menu__head">Bookmark bar folders</div>
+              <div id="rootMenuList" class="root-menu__list" role="listbox" aria-label="Bookmark bar folders"></div>
+            </div>
+          </div>
+
+          <div class="toolbar-actions">
+            <button id="renameRootBtn" class="icon-button" type="button" title="Rename selected root">
+              <svg class="icon"><use href="#icon-edit"></use></svg>
+            </button>
+            <button id="topAddBookmarkBtn" class="icon-button" type="button" title="Add bookmark to selected root">
+              <svg class="icon"><use href="#icon-bookmark_add"></use></svg>
+            </button>
+            <button id="topAddFolderBtn" class="icon-button" type="button" title="Add folder to selected root">
+              <svg class="icon"><use href="#icon-create_new_folder"></use></svg>
+            </button>
+            <button id="deleteRootBtn" class="icon-button icon-button--danger" type="button" title="Delete selected root">
+              <svg class="icon"><use href="#icon-delete_outline"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <form id="createRootForm" class="inline-form">
+          <label class="inline-form__label" for="createRootInput">New top-level folder</label>
+          <div class="inline-form__row">
+            <input id="createRootInput" type="text" autocomplete="off" placeholder="Create a bookmark-bar folder" />
+            <button type="submit">Create root</button>
+          </div>
+        </form>
+
+        <form id="createSubfolderForm" class="inline-form">
+          <label class="inline-form__label" for="createSubfolderInput">Subfolder in selected root</label>
+          <div class="inline-form__row">
+            <input id="createSubfolderInput" type="text" autocomplete="off" placeholder="Create a subfolder inside the active root" />
+            <button type="submit">Create subfolder</button>
+          </div>
+        </form>
+      </header>
+
+      <section class="panel-note">
+        <span class="panel-note__pill">Bookmark bar</span>
+        <p>This is a calmer, more compact view of your favorites, not Chrome’s default bookmarks manager.</p>
+      </section>
+
+      <main id="treeRoot" class="tree-root" aria-live="polite"></main>
+    </div>
+
+    <template id="folderTemplate">
+      <section class="folder-node" data-node-type="folder">
+        <div class="tree-row folder-row" draggable="true">
+          <button class="row-chevron" type="button" aria-label="Toggle folder">
+            <svg class="icon icon-chevron icon-expanded"><use href="#icon-expand_more"></use></svg>
+            <svg class="icon icon-chevron icon-collapsed"><use href="#icon-chevron_right"></use></svg>
+          </button>
+          <div class="row-main">
+            <button class="row-title folder-title" type="button"></button>
+            <div class="row-meta folder-meta"></div>
+          </div>
+          <div class="row-actions">
+            <button class="icon-button row-action add-bookmark" type="button" title="Add bookmark">
+              <svg class="icon"><use href="#icon-bookmark_add"></use></svg>
+            </button>
+            <button class="icon-button row-action add-folder" type="button" title="Add subfolder">
+              <svg class="icon"><use href="#icon-create_new_folder"></use></svg>
+            </button>
+            <button class="icon-button row-action rename-folder" type="button" title="Rename folder">
+              <svg class="icon"><use href="#icon-edit"></use></svg>
+            </button>
+            <button class="icon-button row-action delete-folder" type="button" title="Delete folder">
+              <svg class="icon"><use href="#icon-delete_outline"></use></svg>
+            </button>
+          </div>
+        </div>
+        <div class="folder-children"></div>
+      </section>
+    </template>
+
+    <template id="bookmarkTemplate">
+      <article class="bookmark-node" data-node-type="bookmark">
+        <div class="tree-row bookmark-row" draggable="true">
+          <div class="bookmark-avatar">
+            <img class="bookmark-favicon" alt="" />
+            <span class="bookmark-fallback">
+              <svg class="icon"><use href="#icon-bookmark"></use></svg>
+            </span>
+          </div>
+          <div class="row-main">
+            <button class="row-title bookmark-title" type="button"></button>
+            <div class="row-meta bookmark-meta"></div>
+          </div>
+          <div class="row-actions">
+            <button class="icon-button row-action edit-bookmark" type="button" title="Edit bookmark">
+              <svg class="icon"><use href="#icon-edit"></use></svg>
+            </button>
+            <button class="icon-button row-action delete-bookmark" type="button" title="Delete bookmark">
+              <svg class="icon"><use href="#icon-delete_outline"></use></svg>
+            </button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>
