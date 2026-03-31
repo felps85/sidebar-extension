@@ -332,6 +332,19 @@
         gap: 22px;
       }
 
+      .site-footer {
+        margin-top: 28px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .site-footer a {
+        color: var(--text);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+      }
+
       .steps {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
@@ -382,6 +395,7 @@
           <div class="hero-actions">
             <a class="button button--primary" href="./preview.html">Open Preview</a>
             <a class="button" href="./README.md">Read Setup Guide</a>
+            <a class="button" href="./privacy.html">Privacy Policy</a>
           </div>
         </div>
         <div class="hero-badge">
@@ -497,6 +511,13 @@
           </div>
         </div>
       </section>
+
+      <footer class="site-footer">
+        <p>
+          Questions about privacy? Read the
+          <a href="./privacy.html">Privacy Policy</a>.
+        </p>
+      </footer>
     </main>
   </body>
 </html>
