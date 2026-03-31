@@ -1,6 +1,4 @@
-const rootTrigger = document.getElementById("rootTrigger");
 const rootTriggerTitle = document.getElementById("rootTriggerTitle");
-const rootMenu = document.getElementById("rootMenu");
 const rootMenuList = document.getElementById("rootMenuList");
 const renameRootBtn = document.getElementById("renameRootBtn");
 const topAddBookmarkBtn = document.getElementById("topAddBookmarkBtn");
@@ -11,11 +9,14 @@ const createRootInput = document.getElementById("createRootInput");
 const createSubfolderForm = document.getElementById("createSubfolderForm");
 const createSubfolderInput = document.getElementById("createSubfolderInput");
 const treeRoot = document.getElementById("treeRoot");
+const statusToast = document.getElementById("statusToast");
 const folderTemplate = document.getElementById("folderTemplate");
 const bookmarkTemplate = document.getElementById("bookmarkTemplate");
 
+const BOOKMARK_BAR_ID = "1";
 const COLLAPSE_KEY = "sidebarFavoritesCollapseState";
 const DRAG_MIME = "application/x-sidebar-favorites-node";
+const TOAST_TIMEOUT_MS = 3600;
 
 let appState = {
   activeRootId: null,
@@ -25,9 +26,11 @@ let appState = {
 
 let collapseState = loadCollapseState();
 let dragState = null;
+let toastTimeoutId = 0;
+let faviconRefreshTokens = {};
 
 boot().catch((error) => {
-  console.error(error);
+  handleActionError(error);
   treeRoot.innerHTML = `<div class="empty-state">${escapeHtml(
     error instanceof Error ? error.message : String(error)
   )}</div>`;
@@ -35,105 +38,112 @@ boot().catch((error) => {
 
 async function boot() {
   wireHeader();
+  wireGlobalErrors();
   wireRuntimeRefresh();
   await refreshState();
 }
 
 function wireHeader() {
-  rootTrigger.addEventListener("click", () => {
-    const open = rootMenu.hidden;
-    setRootMenuOpen(open);
-  });
+  renameRootBtn.addEventListener("click", () => {
+    void runUserAction(async () => {
+      const root = getActiveRootSummary();
+      if (!root) {
+        return;
+      }
 
-  document.addEventListener("click", (event) => {
-    if (!rootMenu.hidden && !event.target.closest(".root-picker")) {
-      setRootMenuOpen(false);
-    }
-  });
+      const title = prompt("Rename top-level folder", root.title);
+      if (!title || !title.trim()) {
+        return;
+      }
 
-  renameRootBtn.addEventListener("click", async () => {
-    const root = getActiveRootSummary();
-    if (!root) {
-      return;
-    }
-
-    const title = prompt("Rename top-level folder", root.title);
-    if (!title || !title.trim()) {
-      return;
-    }
-
-    await requestState({
-      type: "renameNode",
-      nodeId: root.id,
-      title: title.trim()
+      await requestState({
+        type: "renameNode",
+        nodeId: root.id,
+        title: title.trim()
+      });
     });
   });
 
-  topAddBookmarkBtn.addEventListener("click", async () => {
-    if (!appState.activeRoot) {
-      return;
-    }
-    await promptCreateBookmark(appState.activeRoot.id);
-  });
-
-  topAddFolderBtn.addEventListener("click", async () => {
-    if (!appState.activeRoot) {
-      return;
-    }
-    await promptCreateFolder(appState.activeRoot.id);
-  });
-
-  deleteRootBtn.addEventListener("click", async () => {
-    const root = getActiveRootSummary();
-    if (!root) {
-      return;
-    }
-
-    if (!confirm(`Delete "${root.title}" and everything inside it?`)) {
-      return;
-    }
-
-    await requestState({
-      type: "deleteNode",
-      nodeId: root.id
+  topAddBookmarkBtn.addEventListener("click", () => {
+    void runUserAction(async () => {
+      if (!appState.activeRoot) {
+        return;
+      }
+      await promptCreateBookmark(appState.activeRoot.id);
     });
   });
 
-  createRootForm.addEventListener("submit", async (event) => {
+  topAddFolderBtn.addEventListener("click", () => {
+    void runUserAction(async () => {
+      if (!appState.activeRoot) {
+        return;
+      }
+      await promptCreateFolder(appState.activeRoot.id);
+    });
+  });
+
+  deleteRootBtn.addEventListener("click", () => {
+    void runUserAction(async () => {
+      const root = getActiveRootSummary();
+      if (!root) {
+        return;
+      }
+
+      if (!confirm(`Delete "${root.title}" and everything inside it?`)) {
+        return;
+      }
+
+      await requestState({
+        type: "deleteNode",
+        nodeId: root.id
+      });
+    });
+  });
+
+  createRootForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    const title = createRootInput.value.trim();
-    if (!title) {
-      return;
-    }
+    void runUserAction(async () => {
+      const title = createRootInput.value.trim();
+      if (!title) {
+        return;
+      }
 
-    const nextState = await requestState({
-      type: "createRootFolder",
-      title
+      await requestState({
+        type: "createRootFolder",
+        title
+      });
+
+      createRootInput.value = "";
     });
-
-    createRootInput.value = "";
-    applyState(nextState);
   });
 
-  createSubfolderForm.addEventListener("submit", async (event) => {
+  createSubfolderForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!appState.activeRoot) {
-      return;
-    }
+    void runUserAction(async () => {
+      if (!appState.activeRoot) {
+        return;
+      }
 
-    const title = createSubfolderInput.value.trim();
-    if (!title) {
-      return;
-    }
+      const title = createSubfolderInput.value.trim();
+      if (!title) {
+        return;
+      }
 
-    const nextState = await requestState({
-      type: "createFolder",
-      parentId: appState.activeRoot.id,
-      title
+      await requestState({
+        type: "createFolder",
+        parentId: appState.activeRoot.id,
+        title
+      });
+
+      createSubfolderInput.value = "";
     });
+  });
+}
 
-    createSubfolderInput.value = "";
-    applyState(nextState);
+function wireGlobalErrors() {
+  window.addEventListener("unhandledrejection", (event) => {
+    event.preventDefault();
+    handleActionError(event.reason);
   });
 }
 
@@ -147,7 +157,7 @@ function wireRuntimeRefresh() {
     "onChildrenReordered"
   ]) {
     events?.[key]?.addListener?.(() => {
-      refreshState().catch(console.error);
+      refreshState().catch(handleActionError);
     });
   }
 }
@@ -184,7 +194,7 @@ function renderRootPicker() {
   createSubfolderInput.disabled = !activeRoot;
   createSubfolderForm.querySelector("button").disabled = !activeRoot;
 
-  for (const root of appState.roots) {
+  for (const root of appState.roots.filter((node) => node.type === "folder")) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "root-option";
@@ -194,13 +204,13 @@ function renderRootPicker() {
     if (root.id === appState.activeRootId) {
       button.classList.add("is-active");
     }
-    button.addEventListener("click", async () => {
-      const nextState = await requestState({
-        type: "setActiveRoot",
-        rootId: root.id
+    button.addEventListener("click", () => {
+      void runUserAction(async () => {
+        await requestState({
+          type: "setActiveRoot",
+          rootId: root.id
+        });
       });
-      applyState(nextState);
-      setRootMenuOpen(false);
     });
     rootMenuList.appendChild(button);
   }
@@ -210,14 +220,19 @@ function renderTree() {
   clearDragIndicators();
   treeRoot.replaceChildren();
 
-  if (!appState.activeRoot) {
+  if (!appState.roots.length) {
     treeRoot.innerHTML =
       '<div class="empty-state">Create a bookmark-bar folder to start building your sidebar favorites.</div>';
     return;
   }
 
-  const rootNode = renderFolderNode(appState.activeRoot, true);
-  treeRoot.appendChild(rootNode);
+  for (const node of appState.roots) {
+    if (node.type === "folder") {
+      treeRoot.appendChild(renderFolderNode(node, true));
+    } else {
+      treeRoot.appendChild(renderBookmarkNode(node));
+    }
+  }
 }
 
 function renderFolderNode(folder, isActiveRoot = false) {
@@ -242,20 +257,26 @@ function renderFolderNode(folder, isActiveRoot = false) {
   meta.textContent = formatFolderMeta(folder);
   titleButton.title = folder.title;
 
+  if (isActiveRoot && folder.id === appState.activeRootId) {
+    row.classList.add("is-selected-root");
+  }
+
   if (isFolderCollapsed(folder.id)) {
     fragment.classList.add("is-collapsed");
   }
 
-  if (!folder.editable) {
+  if (!folder.editable || isActiveRoot) {
     row.draggable = false;
-    addBookmarkBtn.hidden = true;
-    addFolderBtn.hidden = true;
-    renameBtn.hidden = true;
-    deleteBtn.hidden = true;
+    if (!folder.editable) {
+      addBookmarkBtn.hidden = true;
+      addFolderBtn.hidden = true;
+      renameBtn.hidden = true;
+      deleteBtn.hidden = true;
+    }
   }
 
   row.addEventListener("dragstart", (event) => {
-    if (!folder.editable) {
+    if (!folder.editable || isActiveRoot) {
       event.preventDefault();
       return;
     }
@@ -286,6 +307,17 @@ function renderFolderNode(folder, isActiveRoot = false) {
     if (event.target.closest(".row-actions") || event.target.closest(".row-chevron")) {
       return;
     }
+    if (isActiveRoot) {
+      void runUserAction(async () => {
+        if (folder.id !== appState.activeRootId) {
+          await requestState({
+            type: "setActiveRoot",
+            rootId: folder.id
+          });
+        }
+      });
+      return;
+    }
     toggleFolder();
   });
 
@@ -294,40 +326,46 @@ function renderFolderNode(folder, isActiveRoot = false) {
     toggleFolder();
   });
 
-  titleButton.addEventListener("click", toggleFolder);
-
-  addBookmarkBtn.addEventListener("click", async (event) => {
+  addBookmarkBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    await promptCreateBookmark(folder.id);
-  });
-
-  addFolderBtn.addEventListener("click", async (event) => {
-    event.stopPropagation();
-    await promptCreateFolder(folder.id);
-  });
-
-  renameBtn.addEventListener("click", async (event) => {
-    event.stopPropagation();
-    const title = prompt("Rename folder", folder.title);
-    if (!title || !title.trim()) {
-      return;
-    }
-    await requestState({
-      type: "renameNode",
-      nodeId: folder.id,
-      title: title.trim()
+    void runUserAction(async () => {
+      await promptCreateBookmark(folder.id);
     });
   });
 
-  deleteBtn.addEventListener("click", async (event) => {
+  addFolderBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    if (!confirm(`Delete "${folder.title}" and everything inside it?`)) {
-      return;
-    }
+    void runUserAction(async () => {
+      await promptCreateFolder(folder.id);
+    });
+  });
 
-    await requestState({
-      type: "deleteNode",
-      nodeId: folder.id
+  renameBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    void runUserAction(async () => {
+      const title = prompt("Rename folder", folder.title);
+      if (!title || !title.trim()) {
+        return;
+      }
+      await requestState({
+        type: "renameNode",
+        nodeId: folder.id,
+        title: title.trim()
+      });
+    });
+  });
+
+  deleteBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    void runUserAction(async () => {
+      if (!confirm(`Delete "${folder.title}" and everything inside it?`)) {
+        return;
+      }
+
+      await requestState({
+        type: "deleteNode",
+        nodeId: folder.id
+      });
     });
   });
 
@@ -376,14 +414,13 @@ function renderBookmarkNode(bookmark) {
   titleButton.title = bookmark.title;
   meta.textContent = formatBookmarkMeta(bookmark.url);
 
-  const faviconUrl = getFaviconUrl(bookmark.url);
-  favicon.src = faviconUrl;
   favicon.addEventListener("load", () => {
     avatar.classList.add("has-image");
   });
   favicon.addEventListener("error", () => {
     avatar.classList.remove("has-image");
   });
+  applyFavicon(favicon, avatar, bookmark);
 
   if (!bookmark.editable) {
     row.draggable = false;
@@ -391,39 +428,46 @@ function renderBookmarkNode(bookmark) {
     deleteBtn.hidden = true;
   }
 
-  titleButton.addEventListener("click", async () => {
-    await sendMessage({
-      type: "openBookmark",
-      url: bookmark.url
+  titleButton.addEventListener("click", () => {
+    void runUserAction(async () => {
+      queueFaviconRefresh(favicon, avatar, bookmark);
+      await sendMessage({
+        type: "openBookmark",
+        url: bookmark.url
+      });
     });
   });
 
-  editBtn.addEventListener("click", async (event) => {
+  editBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    const next = await promptBookmarkValues({
-      title: bookmark.title,
-      url: bookmark.url
-    });
-    if (!next) {
-      return;
-    }
+    void runUserAction(async () => {
+      const next = await promptBookmarkValues({
+        title: bookmark.title,
+        url: bookmark.url
+      });
+      if (!next) {
+        return;
+      }
 
-    await requestState({
-      type: "updateBookmark",
-      nodeId: bookmark.id,
-      title: next.title,
-      url: next.url
+      await requestState({
+        type: "updateBookmark",
+        nodeId: bookmark.id,
+        title: next.title,
+        url: next.url
+      });
     });
   });
 
-  deleteBtn.addEventListener("click", async (event) => {
+  deleteBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    if (!confirm(`Delete "${bookmark.title}"?`)) {
-      return;
-    }
-    await requestState({
-      type: "deleteNode",
-      nodeId: bookmark.id
+    void runUserAction(async () => {
+      if (!confirm(`Delete "${bookmark.title}"?`)) {
+        return;
+      }
+      await requestState({
+        type: "deleteNode",
+        nodeId: bookmark.id
+      });
     });
   });
 
@@ -457,6 +501,11 @@ function renderBookmarkNode(bookmark) {
       return;
     }
 
+    if (payload && !canMovePayloadToParent(payload, bookmark.parentId)) {
+      clearDragIndicators();
+      return;
+    }
+
     event.preventDefault();
     row.classList.remove("drag-before", "drag-after", "is-raw-url-target");
     clearDragIndicators(row);
@@ -486,9 +535,11 @@ function renderBookmarkNode(bookmark) {
       event.preventDefault();
       const position = getBookmarkDropPosition(event, row);
       const index = position === "before" ? bookmark.index : bookmark.index + 1;
-      await promptCreateBookmark(bookmark.parentId, {
-        initialUrl: rawUrl,
-        index
+      void runUserAction(async () => {
+        await promptCreateBookmark(bookmark.parentId, {
+          initialUrl: rawUrl,
+          index
+        });
       });
       return;
     }
@@ -497,14 +548,20 @@ function renderBookmarkNode(bookmark) {
       return;
     }
 
+    if (!canMovePayloadToParent(payload, bookmark.parentId)) {
+      return;
+    }
+
     event.preventDefault();
     const position = getBookmarkDropPosition(event, row);
     const index = position === "before" ? bookmark.index : bookmark.index + 1;
-    await requestState({
-      type: "moveNode",
-      nodeId: payload.id,
-      parentId: bookmark.parentId,
-      index
+    void runUserAction(async () => {
+      await requestState({
+        type: "moveNode",
+        nodeId: payload.id,
+        parentId: bookmark.parentId,
+        index
+      });
     });
   });
 
@@ -516,6 +573,11 @@ function wireFolderDropTargets(element, folder, target) {
     const payload = getDragPayload(event.dataTransfer);
     const rawUrl = getRawUrlFromDataTransfer(event.dataTransfer);
     if (!payload && !rawUrl) {
+      return;
+    }
+
+    if (payload && !canMovePayloadToParent(payload, target.dropParentId)) {
+      clearDragIndicators();
       return;
     }
 
@@ -543,18 +605,26 @@ function wireFolderDropTargets(element, folder, target) {
     event.preventDefault();
 
     if (rawUrl) {
-      await promptCreateBookmark(folder.id, {
-        initialUrl: rawUrl,
-        index: target.dropIndex
+      void runUserAction(async () => {
+        await promptCreateBookmark(folder.id, {
+          initialUrl: rawUrl,
+          index: target.dropIndex
+        });
       });
       return;
     }
 
-    await requestState({
-      type: "moveNode",
-      nodeId: payload.id,
-      parentId: target.dropParentId,
-      index: target.dropIndex
+    if (!canMovePayloadToParent(payload, target.dropParentId)) {
+      return;
+    }
+
+    void runUserAction(async () => {
+      await requestState({
+        type: "moveNode",
+        nodeId: payload.id,
+        parentId: target.dropParentId,
+        index: target.dropIndex
+      });
     });
   });
 }
@@ -624,18 +694,75 @@ function sendMessage(message) {
   return chrome.runtime.sendMessage(message);
 }
 
-function setRootMenuOpen(open) {
-  rootMenu.hidden = !open;
-  rootTrigger.setAttribute("aria-expanded", String(open));
-}
-
 function getActiveRootSummary() {
-  return appState.roots.find((root) => root.id === appState.activeRootId) ?? null;
+  return appState.roots.find((root) => root.type === "folder" && root.id === appState.activeRootId) ?? null;
 }
 
 function getBookmarkDropPosition(event, row) {
   const rect = row.getBoundingClientRect();
   return event.clientY < rect.top + rect.height / 2 ? "before" : "after";
+}
+
+function canMovePayloadToParent(payload, parentId) {
+  if (!payload || !parentId) {
+    return false;
+  }
+
+  if (payload.type === "folder" && payload.parentId === BOOKMARK_BAR_ID) {
+    return false;
+  }
+
+  if (payload.type === "folder") {
+    if (payload.id === parentId) {
+      return false;
+    }
+
+    if (isDescendantNode(parentId, payload.id)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isDescendantNode(candidateId, ancestorId) {
+  let current = findNodeById(appState.roots, candidateId);
+  while (current?.parentId) {
+    if (current.parentId === ancestorId) {
+      return true;
+    }
+    current = findNodeById(appState.roots, current.parentId);
+  }
+  return false;
+}
+
+function findNodeById(node, nodeId) {
+  if (!node || !nodeId) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findNodeById(child, nodeId);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  if (node.id === nodeId) {
+    return node;
+  }
+
+  for (const child of node.children ?? []) {
+    const found = findNodeById(child, nodeId);
+    if (found) {
+      return found;
+    }
+  }
+
+  return null;
 }
 
 function getDragPayload(dataTransfer) {
@@ -679,16 +806,43 @@ function getRawUrlFromDataTransfer(dataTransfer) {
   }
 }
 
-function getFaviconUrl(url) {
+function applyFavicon(favicon, avatar, bookmark) {
+  avatar.classList.remove("has-image");
+  favicon.src = getFaviconUrl(bookmark.url, bookmark.id);
+}
+
+function queueFaviconRefresh(favicon, avatar, bookmark) {
+  bumpFaviconToken(bookmark.id);
+  applyFavicon(favicon, avatar, bookmark);
+
+  window.setTimeout(() => {
+    bumpFaviconToken(bookmark.id);
+    applyFavicon(favicon, avatar, bookmark);
+  }, 1200);
+}
+
+function bumpFaviconToken(bookmarkId) {
+  faviconRefreshTokens = {
+    ...faviconRefreshTokens,
+    [bookmarkId]: Date.now()
+  };
+}
+
+function getFaviconUrl(url, bookmarkId) {
   if (!url) {
     return "";
   }
 
   try {
+    const token = faviconRefreshTokens[bookmarkId] ?? 0;
     if (window.location.pathname.endsWith("/preview.html") || window.location.pathname.endsWith("preview.html")) {
-      return `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(url)}`;
+      return `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(url)}&v=${token}`;
     }
-    return `chrome://favicon2/?size=32&pageUrl=${encodeURIComponent(url)}`;
+    const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
+    faviconUrl.searchParams.set("pageUrl", url);
+    faviconUrl.searchParams.set("size", "32");
+    faviconUrl.searchParams.set("v", String(token));
+    return faviconUrl.toString();
   } catch (_error) {
     return "";
   }
@@ -741,6 +895,35 @@ function clearDragIndicators(except) {
       element.classList.remove("is-drop-target", "is-raw-url-target", "drag-before", "drag-after");
     }
   }
+}
+
+async function runUserAction(action, options = {}) {
+  try {
+    return await action();
+  } catch (error) {
+    handleActionError(error);
+    return options.fallback ?? null;
+  }
+}
+
+function handleActionError(error) {
+  console.error(error);
+  const message = error instanceof Error ? error.message : String(error);
+  showToast(message || "Something went wrong.");
+}
+
+function showToast(message) {
+  if (!statusToast) {
+    return;
+  }
+
+  statusToast.textContent = message;
+  statusToast.hidden = false;
+
+  clearTimeout(toastTimeoutId);
+  toastTimeoutId = window.setTimeout(() => {
+    statusToast.hidden = true;
+  }, TOAST_TIMEOUT_MS);
 }
 
 function escapeHtml(value) {

@@ -103,10 +103,11 @@ button {
 }
 
 .root-picker {
-  position: relative;
+  display: grid;
+  gap: 8px;
 }
 
-.root-trigger,
+.root-status,
 .icon-button,
 .inline-form button,
 .root-option {
@@ -115,17 +116,12 @@ button {
   border-radius: 12px;
 }
 
-.root-trigger {
-  width: 100%;
+.root-status {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+  gap: 2px;
   padding: 10px 12px;
-  text-align: left;
-  cursor: pointer;
 }
 
-.root-trigger:hover,
 .icon-button:hover,
 .inline-form button:hover,
 .root-option:hover {
@@ -133,7 +129,7 @@ button {
   border-color: var(--border-strong);
 }
 
-.root-trigger__label {
+.root-status__label {
   display: block;
   color: var(--muted);
   font-size: 11px;
@@ -141,9 +137,8 @@ button {
   text-transform: uppercase;
 }
 
-.root-trigger__title {
+.root-status__title {
   display: block;
-  margin-top: 2px;
   font-size: 15px;
   font-weight: 580;
 }
@@ -174,16 +169,23 @@ button {
   color: var(--danger);
 }
 
+.icon-button:disabled,
+.inline-form button:disabled,
+.inline-form input:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
 .root-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: rgba(9, 16, 25, 0.96);
-  box-shadow: var(--shadow);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.root-menu--inline {
+  position: static;
+  box-shadow: none;
 }
 
 .root-menu__head {
@@ -195,17 +197,19 @@ button {
 }
 
 .root-menu__list {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   max-height: 240px;
   overflow: auto;
 }
 
 .root-option {
-  width: 100%;
-  padding: 9px 10px;
+  width: auto;
+  padding: 8px 11px;
   text-align: left;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .root-option.is-active {
@@ -319,6 +323,11 @@ button {
 .tree-row.is-drop-target {
   background: rgba(136, 183, 255, 0.12);
   border-color: rgba(136, 183, 255, 0.42);
+}
+
+.tree-row.is-selected-root {
+  background: rgba(136, 183, 255, 0.14);
+  border-color: rgba(136, 183, 255, 0.34);
 }
 
 .tree-row.is-dragging {
@@ -483,6 +492,22 @@ button {
 .children-dropzone.is-drop-target {
   background: rgba(136, 183, 255, 0.09);
   box-shadow: inset 0 0 0 1px rgba(136, 183, 255, 0.28);
+}
+
+.status-toast {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 40;
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 138, 147, 0.35);
+  border-radius: 14px;
+  background: rgba(48, 15, 21, 0.94);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.34);
+  color: #ffdfe2;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 @media (max-width: 480px) {

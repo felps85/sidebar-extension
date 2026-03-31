@@ -94,34 +94,29 @@ async function configureSidePanel() {
 }
 
 async function buildState() {
-  const roots = await getBookmarkBarRoots();
+  const bookmarkBarChildren = await getBookmarkBarChildren();
   const uiState = await getUiState();
-  const validRootIds = new Set(roots.map((root) => root.id));
+  const rootFolders = bookmarkBarChildren.filter((node) => !node.url);
+  const validRootIds = new Set(rootFolders.map((root) => root.id));
 
   let activeRootId = uiState.activeRootId;
   if (!activeRootId || !validRootIds.has(activeRootId)) {
-    activeRootId = roots[0]?.id ?? null;
+    activeRootId = rootFolders[0]?.id ?? null;
     await setActiveRootId(activeRootId);
   }
 
-  const activeRoot = activeRootId ? await getMappedNode(activeRootId) : null;
+  const roots = bookmarkBarChildren.map((node) => mapBookmarkNode(node));
+  const activeRoot = roots.find((node) => node.id === activeRootId) ?? null;
 
   return {
     activeRootId,
-    roots: roots.map((root, index) => ({
-      id: root.id,
-      type: "folder",
-      title: root.title || "Untitled folder",
-      editable: true,
-      parentId: root.parentId ?? BOOKMARK_BAR_ID,
-      index: typeof root.index === "number" ? root.index : index
-    })),
+    roots,
     activeRoot
   };
 }
 
 async function setActiveRoot(rootId) {
-  const roots = await getBookmarkBarRoots();
+  const roots = (await getBookmarkBarChildren()).filter((root) => !root.url);
   const found = roots.find((root) => root.id === rootId);
   if (!found) {
     throw new Error("Root folder not found.");
@@ -235,6 +230,10 @@ async function moveNode({ nodeId, parentId, index }) {
     throw new Error("Destination must be a folder.");
   }
 
+  if (!moving.url && moving.parentId === BOOKMARK_BAR_ID) {
+    throw new Error("Top-level bookmark-bar folders stay at the root.");
+  }
+
   if (!moving.url) {
     if (moving.id === destination.id) {
       throw new Error("Cannot move a folder into itself.");
@@ -300,14 +299,8 @@ async function getActiveTabInfo() {
   };
 }
 
-async function getBookmarkBarRoots() {
-  const children = await getChildren(BOOKMARK_BAR_ID);
-  return children.filter((node) => !node.url);
-}
-
-async function getMappedNode(nodeId) {
-  const node = await getNode(nodeId);
-  return mapBookmarkNode(node);
+async function getBookmarkBarChildren() {
+  return getChildren(BOOKMARK_BAR_ID);
 }
 
 function mapBookmarkNode(node) {

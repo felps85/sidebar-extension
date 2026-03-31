@@ -6,7 +6,8 @@ This project is not a parked-tab manager, not a live-tab sidebar, and not a drag
 
 ## What the sidebar can do
 
-- Switch between top-level bookmark-bar folders
+- Load the bookmark bar into the side panel, including top-level folders and bookmarks
+- Select a top-level bookmark-bar folder for root-level actions
 - Rename or delete the selected top-level folder
 - Create a new top-level folder directly in the bookmark bar
 - Create subfolders in the active root or inside nested folders

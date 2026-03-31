@@ -57,7 +57,6 @@
         const root = createFolderNode(state, BOOKMARK_BAR_ID, String(message.title ?? "").trim());
         state.activeRootId = root.id;
         writeState(state);
-        listeners.onCreated.dispatch(root.id, cloneNode(root));
         listeners.onChildrenReordered.dispatch(BOOKMARK_BAR_ID, getChildIds(state, BOOKMARK_BAR_ID));
         return { ok: true, ...buildState(state) };
       }
@@ -123,12 +122,11 @@
 
   function buildState(state) {
     ensureActiveRoot(state);
-    const roots = getChildIds(state, BOOKMARK_BAR_ID)
-      .map((id) => state.nodes[id])
-      .filter((node) => node && !node.url)
-      .map((node, index) => mapNode(state, node.id, BOOKMARK_BAR_ID, index));
+    const roots = getChildIds(state, BOOKMARK_BAR_ID).map((id, index) =>
+      mapNode(state, id, BOOKMARK_BAR_ID, index)
+    );
 
-    const activeRoot = state.activeRootId ? mapNode(state, state.activeRootId) : null;
+    const activeRoot = roots.find((node) => node.id === state.activeRootId) ?? null;
 
     return {
       activeRootId: state.activeRootId,
@@ -206,6 +204,10 @@
     const targetParent = getNode(state, parentId);
     if (targetParent.url) {
       throw new Error("Destination must be a folder.");
+    }
+
+    if (!node.url && node.parentId === BOOKMARK_BAR_ID) {
+      throw new Error("Top-level bookmark-bar folders stay at the root.");
     }
 
     if (!node.url) {

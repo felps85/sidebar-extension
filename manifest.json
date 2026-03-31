@@ -3,10 +3,21 @@
   "name": "Sidebar Favorites",
   "version": "0.1.0",
   "description": "Browse and manage bookmark bar folders from a cleaner side panel view.",
-  "action": {
-    "default_title": "Sidebar Favorites"
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
   },
-  "permissions": ["bookmarks", "storage", "tabs", "sidePanel"],
+  "action": {
+    "default_title": "Sidebar Favorites",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png"
+    }
+  },
+  "permissions": ["bookmarks", "storage", "tabs", "sidePanel", "favicon"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

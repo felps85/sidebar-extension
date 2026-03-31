@@ -44,12 +44,11 @@
 
         <div class="toolbar">
           <div class="root-picker">
-            <button id="rootTrigger" class="root-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-              <span class="root-trigger__label">Choose folder</span>
-              <span class="root-trigger__title" id="rootTriggerTitle">No folder selected</span>
-              <svg class="icon"><use href="#icon-expand_more"></use></svg>
-            </button>
-            <div id="rootMenu" class="root-menu" hidden>
+            <div class="root-status">
+              <span class="root-status__label">Selected folder</span>
+              <span class="root-status__title" id="rootTriggerTitle">No folder selected</span>
+            </div>
+            <div class="root-menu root-menu--inline">
               <div class="root-menu__head">Bookmark bar folders</div>
               <div id="rootMenuList" class="root-menu__list" role="listbox" aria-label="Bookmark bar folders"></div>
             </div>
@@ -95,6 +94,8 @@
 
       <main id="treeRoot" class="tree-root" aria-live="polite"></main>
     </div>
+
+    <div id="statusToast" class="status-toast" role="alert" aria-live="assertive" hidden></div>
 
     <template id="folderTemplate">
       <section class="folder-node" data-node-type="folder">
