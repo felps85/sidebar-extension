@@ -4,58 +4,65 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sidebar Favorites Privacy Policy</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="./icon32.png" />
     <style>
       :root {
-        --bg: #2f2f31;
+        --bg: #262628;
+        --bg-soft: #2d2d30;
         --panel: rgba(255, 255, 255, 0.04);
+        --panel-strong: rgba(255, 255, 255, 0.06);
         --border: rgba(255, 255, 255, 0.08);
-        --text: rgba(255, 255, 255, 0.94);
-        --muted: rgba(255, 255, 255, 0.68);
-        --accent: #ff4761;
-        --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+        --text: rgba(255, 255, 255, 0.96);
+        --muted: rgba(255, 255, 255, 0.62);
+        --accent: #ff4c67;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html,
       body {
         margin: 0;
-        min-height: 100vh;
+        min-height: 100%;
+      }
+
+      body {
         background:
-          radial-gradient(circle at top left, rgba(255, 71, 97, 0.08), transparent 28%),
-          linear-gradient(180deg, #2f2f31, #29292b);
+          radial-gradient(circle at top left, rgba(255, 76, 103, 0.1), transparent 30%),
+          linear-gradient(180deg, #2d2d30 0%, #262628 100%);
         color: var(--text);
-        font: 16px/1.6 "Segoe UI", "SF Pro Text", "Helvetica Neue", sans-serif;
+        font: 16px/1.65 "Segoe UI", "SF Pro Text", "Helvetica Neue", sans-serif;
       }
 
       a {
         color: inherit;
+        text-decoration: none;
       }
 
       .shell {
-        width: min(880px, calc(100% - 40px));
+        width: min(920px, calc(100% - 40px));
         margin: 0 auto;
-        padding: 40px 0 64px;
+        padding: 28px 0 56px;
       }
 
       .topbar {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
+        gap: 16px;
+        margin-bottom: 34px;
       }
 
       .brand {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         color: var(--muted);
         font-size: 13px;
         font-weight: 700;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
       }
 
@@ -63,27 +70,41 @@
         width: 24px;
         height: 24px;
         object-fit: contain;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
       }
 
-      .home-link {
+      .top-link {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.75fr);
+        gap: 24px;
+        align-items: start;
+        margin-bottom: 20px;
+      }
+
+      .eyebrow {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        min-height: 42px;
-        padding: 0 16px;
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.04);
-        text-decoration: none;
-        font-weight: 600;
+        gap: 10px;
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
       }
 
-      .card {
-        padding: 28px;
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        background: var(--panel);
-        box-shadow: var(--shadow);
+      .eyebrow-mark {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 0 6px rgba(255, 76, 103, 0.12);
       }
 
       h1,
@@ -94,175 +115,228 @@
       }
 
       h1 {
-        font-size: clamp(2.2rem, 5vw, 3.5rem);
-        line-height: 1;
-        letter-spacing: -0.04em;
+        max-width: 10ch;
+        font-size: clamp(2.6rem, 6vw, 4.1rem);
+        line-height: 0.97;
+        letter-spacing: -0.05em;
       }
 
       h2 {
-        margin-top: 28px;
-        font-size: 1.2rem;
+        font-size: 1rem;
         line-height: 1.2;
       }
 
+      .hero-copy p,
       .lede,
-      .meta,
-      li {
+      .summary p,
+      .policy-section p,
+      .policy-section li,
+      .site-footer {
         color: var(--muted);
       }
 
-      .lede {
-        margin-top: 14px;
+      .hero-copy p {
+        max-width: 56ch;
+        margin-top: 18px;
         font-size: 18px;
       }
 
+      .summary {
+        padding: 20px;
+        border: 1px solid rgba(255, 76, 103, 0.2);
+        border-radius: 22px;
+        background: rgba(255, 76, 103, 0.08);
+        box-shadow: var(--shadow);
+      }
+
+      .summary h2 {
+        margin-bottom: 8px;
+        color: var(--text);
+      }
+
       .meta {
-        margin-top: 12px;
+        margin-top: 16px;
+        color: var(--muted);
         font-size: 14px;
       }
 
-      .notice {
-        margin-top: 24px;
-        padding: 18px 20px;
-        border: 1px solid rgba(255, 71, 97, 0.2);
-        border-radius: 18px;
-        background: rgba(255, 71, 97, 0.1);
+      .policy-grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
       }
 
-      .notice strong {
-        color: #fff;
+      .policy-section {
+        padding: 20px 22px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
       }
 
-      p + p,
-      h2 + p,
-      h2 + ul,
-      ul + p {
-        margin-top: 12px;
-      }
-
-      ul {
-        padding-left: 20px;
-      }
-
-      li + li {
+      .policy-section p,
+      .policy-section ul {
         margin-top: 10px;
       }
 
-      .contact {
-        margin-top: 32px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border);
+      .policy-section ul {
+        padding-left: 18px;
       }
 
-      .contact a {
-        color: #fff;
+      .policy-section li + li {
+        margin-top: 8px;
+      }
+
+      .policy-section strong {
+        color: var(--text);
+      }
+
+      .site-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 24px;
+        font-size: 14px;
+      }
+
+      .site-footer a,
+      .policy-section a {
+        color: var(--text);
         text-decoration: underline;
         text-underline-offset: 0.18em;
+      }
+
+      @media (max-width: 860px) {
+        .hero,
+        .site-footer {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .site-footer {
+          justify-content: start;
+        }
       }
     </style>
   </head>
   <body>
     <main class="shell">
-      <div class="topbar">
+      <header class="topbar">
         <div class="brand">
           <img src="./icon128.png" alt="" />
           <span>Sidebar Favorites</span>
         </div>
-        <a class="home-link" href="./index.html">Back to Home</a>
-      </div>
+        <a class="top-link" href="./index.html">Home</a>
+      </header>
 
-      <section class="card">
-        <h1>Privacy Policy</h1>
-        <p class="lede">
-          Sidebar Favorites is designed to help you browse and manage your existing Chrome bookmarks
-          from a cleaner side panel view. The extension does not collect, sell, or share your
-          personal information.
-        </p>
-        <p class="meta">Last updated: March 31, 2026</p>
-
-        <div class="notice">
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="eyebrow-mark"></span>
+            <span>Privacy Policy</span>
+          </div>
+          <h1>Local by design.</h1>
           <p>
-            <strong>Short version:</strong> Sidebar Favorites works locally in your browser. We do
-            not run analytics for the extension, we do not send your bookmarks to our servers, and
-            we do not use your data for advertising.
+            Sidebar Favorites is built to work with your existing Chrome bookmarks inside your own
+            browser. It does not run a remote backend, and it does not collect or sell personal data.
           </p>
+          <p class="meta">Last updated: March 31, 2026</p>
         </div>
 
-        <h2>What this extension does</h2>
-        <p>
-          Sidebar Favorites shows your Chrome bookmark bar folders, subfolders, and saved pages in a
-          vertical side panel. It lets you open, edit, organize, and move bookmarks using the same
-          bookmark structure you already have in Chrome.
-        </p>
+        <aside class="summary">
+          <h2>Short version</h2>
+          <p>
+            The extension reads bookmark and tab information only to provide the bookmark sidebar
+            experience locally in Chrome. We do not send that information to our servers, use it for
+            advertising, or share it with third parties.
+          </p>
+        </aside>
+      </section>
 
-        <h2>What information we collect</h2>
-        <p>
-          We do not collect personal information through the extension. We do not transmit your
-          bookmarks, browsing history, tab data, or account information to our servers because the
-          extension does not use a remote backend service.
-        </p>
+      <section class="policy-grid">
+        <article class="policy-section">
+          <h2>What the extension does</h2>
+          <p>
+            Sidebar Favorites shows your bookmark bar folders, subfolders, and saved pages in a
+            vertical side panel. It lets you open, edit, organize, and move bookmarks using the same
+            bookmark structure you already have in Chrome.
+          </p>
+        </article>
 
-        <h2>How the extension uses Chrome permissions</h2>
-        <ul>
-          <li>
-            <strong>bookmarks:</strong> used to read and update your bookmark folders and bookmark
-            items so the side panel can show and manage the bookmark structure you already maintain
-            in Chrome.
-          </li>
-          <li>
-            <strong>tabs:</strong> used to read the active tab title and URL when you choose to save
-            the current page as a bookmark, and to open a selected bookmark in the active tab when
-            possible.
-          </li>
-          <li>
-            <strong>storage:</strong> used only for lightweight local preferences, such as saved UI
-            state and folder collapse state. This data stays in Chrome storage on your device.
-          </li>
-          <li>
-            <strong>sidePanel:</strong> used to display the extension in Chrome’s side panel.
-          </li>
-          <li>
-            <strong>favicon:</strong> used to display site icons next to bookmark links inside the
-            panel.
-          </li>
-        </ul>
+        <article class="policy-section">
+          <h2>What information we collect</h2>
+          <p>
+            We do not collect personal information through the extension. We do not transmit your
+            bookmarks, browsing history, tab data, or account information to our servers because the
+            extension does not use a remote backend service.
+          </p>
+        </article>
 
-        <h2>How your data is stored</h2>
-        <p>
-          Any UI preferences saved by Sidebar Favorites are stored locally through Chrome’s extension
-          storage on your device. Bookmark content remains in Chrome’s own bookmark system. The
-          extension does not maintain a separate cloud database or sync service.
-        </p>
+        <article class="policy-section">
+          <h2>How permissions are used</h2>
+          <ul>
+            <li>
+              <strong>bookmarks:</strong> used to read and update bookmark folders and bookmark items
+              so the side panel can show and manage the structure you already maintain in Chrome.
+            </li>
+            <li>
+              <strong>tabs:</strong> used to read the active tab title and URL when you save the
+              current page as a bookmark, and to open a selected bookmark in the active tab when
+              possible.
+            </li>
+            <li>
+              <strong>storage:</strong> used only for lightweight local preferences such as saved UI
+              state and folder collapse state.
+            </li>
+            <li>
+              <strong>sidePanel:</strong> used to display the extension in Chrome’s side panel.
+            </li>
+            <li>
+              <strong>favicon:</strong> used to display site icons next to bookmark links.
+            </li>
+          </ul>
+        </article>
 
-        <h2>Data sharing and sale</h2>
-        <p>
-          We do not sell your data. We do not share your personal information with advertisers, data
-          brokers, analytics providers, or other third parties for independent use.
-        </p>
+        <article class="policy-section">
+          <h2>How data is stored</h2>
+          <p>
+            Any UI preferences saved by Sidebar Favorites are stored locally through Chrome’s
+            extension storage on your device. Bookmark content remains in Chrome’s own bookmark
+            system. The extension does not maintain a separate cloud database or sync service.
+          </p>
+        </article>
 
-        <h2>Advertising, analytics, and tracking</h2>
-        <p>
-          The extension does not include advertising, analytics SDKs, tracking pixels, or remote
-          code loaders. It does not use your bookmark or tab data for profiling, marketing, or
-          personalized ads.
-        </p>
+        <article class="policy-section">
+          <h2>Sharing, sale, and advertising</h2>
+          <p>
+            We do not sell your data. We do not share your personal information with advertisers,
+            data brokers, analytics providers, or other third parties for independent use. The
+            extension does not include advertising, analytics SDKs, tracking pixels, or remote code
+            loaders.
+          </p>
+        </article>
 
-        <h2>Project website</h2>
-        <p>
-          The project website is a static informational page. We do not operate forms, analytics, or
-          ad tracking on that page. If you access the site through GitHub Pages or a browser, GitHub
-          and your browser provider may process standard technical request data under their own
-          policies.
-        </p>
+        <article class="policy-section">
+          <h2>Project website</h2>
+          <p>
+            The project website is a static informational page. We do not operate forms, analytics,
+            or ad tracking on that page. If you access the site through GitHub Pages or a browser,
+            GitHub and your browser provider may process standard technical request data under their
+            own policies.
+          </p>
+        </article>
 
-        <h2>Future changes</h2>
-        <p>
-          If the extension’s data practices change in the future, this Privacy Policy will be updated
-          before those changes are released, and the Chrome Web Store disclosures will be updated to
-          match.
-        </p>
+        <article class="policy-section">
+          <h2>Future changes</h2>
+          <p>
+            If the extension’s data practices change in the future, this Privacy Policy will be
+            updated before those changes are released, and the Chrome Web Store disclosures will be
+            updated to match.
+          </p>
+        </article>
 
-        <div class="contact">
+        <article class="policy-section">
           <h2>Contact</h2>
           <p>
             For privacy questions about Sidebar Favorites, please use the project repository:
@@ -270,8 +344,13 @@
               github.com/felps85/sidebar-extension
             </a>
           </p>
-        </div>
+        </article>
       </section>
+
+      <footer class="site-footer">
+        <p>Sidebar Favorites is a bookmark sidebar for Chrome, not a tab manager.</p>
+        <p><a href="./index.html">Back to homepage</a></p>
+      </footer>
     </main>
   </body>
 </html>
